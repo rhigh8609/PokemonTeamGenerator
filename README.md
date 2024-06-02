@@ -81,10 +81,6 @@ npm run build
 
 - **Tailwind CSS**: Utilized for responsive and utility-first CSS styling.
 
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for any changes or improvements.
-
 ## License
 
 This project is licensed under the MIT License.
