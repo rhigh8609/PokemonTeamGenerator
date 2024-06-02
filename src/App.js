@@ -1,215 +1,135 @@
+import React, { useState, useEffect, useCallback } from 'react';
 import { title, question } from './assets';
 import './App.css';
 
-const headerArray = ["#pokemon1Name", "#pokemon2Name", "#pokemon3Name", "#pokemon4Name", "#pokemon5Name", "#pokemon6Name"]
-const pokemonImages = ["#pokemon1Url", "#pokemon2Url", "#pokemon3Url", "#pokemon4Url", "#pokemon5Url", "#pokemon6Url"]
-let pokemonTeam = []
-let allPokemon = []
+// Custom hook to fetch and store all Pokémon names
+const useFetchAllPokemon = () => {
+    const [allPokemon, setAllPokemon] = useState([]);
 
+    useEffect(() => {
+        fetch('https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0')
+            .then(res => res.json())
+            .then(result => {
+                // Sort the Pokémon names and store them in state and localStorage
+                const sortedPokemon = result.results.map(p => p.name).sort();
+                setAllPokemon(sortedPokemon);
+                localStorage.setItem('allPokemon', JSON.stringify(sortedPokemon));
+            })
+            .catch(error => console.error('error', error));
+    }, []);
 
-fetch('https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0')
-  .then(res => res.json())
-  .then(result => {
-    result.results.forEach(x => {
-      allPokemon.push(x.name)
-    })
-    allPokemon = allPokemon.sort()
-    localStorage.setItem('allPokemon', allPokemon)    
-  })
-  .catch(error => console.error('error', error))
+    return allPokemon;
+};
 
-
-function getUserInput(){
-  let i = document.querySelector('#nameInput').value
-  return i;
-}
-
-function convertUserInput(input){
-  input = input.split(' ').join('')
-  input = input.toLowerCase();
-  input = input.slice(0, 6)
-  input = input.split('')
-  return input
-}
-
-function makeTeamFromName(){
-  pokemonTeam = []
-  
-  let input = getUserInput()
-  input = convertUserInput(input)
-
-  input.forEach(letter => {
-    const filteredPokemon = allPokemon.filter(p => p[0] == letter)
-    let x = Math.floor(Math.random() * filteredPokemon.length)
-    pokemonTeam.push(filteredPokemon[x])
-  })
-  for(let i = 0; i<6; i++){
-    let pokemonName = capitalizeFirstLetter(pokemonTeam[i])
-    document.querySelector(`${headerArray[i]}`).innerText = pokemonName
-  }
-  makeImages()
-}
-
-function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-function click(){
-  if (validateInput() == true) makeTeamFromName()
-}
-
-function validateInput() {
-  if (document.querySelector('#nameInput').value == "") {
-      alert("Enter a name");
-      document.querySelector('#nameInput').focus();
-      return false;
-  }
-  if (!/^[a-zA-Z\s]*$/g.test(document.querySelector('#nameInput').value)) {
-      alert("Invalid characters. Your name input should only have spaces and letters.");
-      document.querySelector('#nameInput').focus();
-      return false;
-  }
-  if ((document.querySelector('#nameInput').value.length < 6)) {
-    alert("Name is too short. Need a minimum of six letters");
-    document.querySelector('#nameInput').focus();
-    return false;
-}
-  return true;
-}
-
-
-function App() {
-  return (
-    <div id='pageContainer' className="flex flex-col items-center mt-6">
-      <div>
-        <img src={title}></img>
-      </div>
-      
-      <div className='flex flex-col justify-center align-center p-4 bg-red-500 mt-12 rounded-xl'>
-        <div id='nameForm' className='flex flex-col justify-center align-center bg-red-500' onSubmit="return false;">
-          <label className='bg-red-500 text-white'>Enter your name:</label>
-          <input id='nameInput' type='text' 
-          className='bg-white input[type=text] rounded-md border-gray-300 shadow-sm pl-3 py-2
-          focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'>
-          </input>
+// Component to display each Pokémon card
+const PokemonCard = ({ pokemon, imageUrl, index }) => (
+    <div key={index} className='pokemonCard flex flex-col items-center bg-white rounded-2xl drop-shadow-md hoverBiggen'>
+        <div className='bg-red-500 w-full flex text-center justify-center text-white rounded-t-2xl'>
+            <h2 className='px-2'>{pokemon}</h2>
         </div>
-      </div>
-      
-      <button className='makeTeam bg-red-500 drop-shadow-xl hoverBiggen'
-        onClick={click}
-      >
-        Make Team
-      </button>
-      
-      <div id='pokemonWrapper' className='grid grid-cols-3 m-6 gap-6'>
-        <div id="pokemon1" className='pokemonCard flex flex-col items-center bg-white rounded-2xl drop-shadow-md hoverBiggen'>
-          <div className='bg-red-500 w-full flex text-center justify-center text-white rounded-t-2xl'>
-            <h2 id="pokemon1Name" className='px-2'>Who's That Pokemon?</h2>
-          </div>
-          <img id="pokemon1Url" className ='p-2 drop-shadow-xl' src={question} alt='pokemon'></img>
-          <p id="pokemon1Desc" className=''></p>  
-        </div>
-        
-        <div id="pokemon2" className='pokemonCard flex flex-col items-center bg-white rounded-2xl drop-shadow-md hoverBiggen'>
-          <div className='bg-red-500 w-full flex text-center justify-center text-white rounded-t-2xl'>
-            <h2 id="pokemon2Name" className='px-2'>Who's That Pokemon?</h2>
-          </div>
-          <img id="pokemon2Url" className ='p-2' src={question} alt='pokemon'></img>
-          <p id="pokemon2Desc" className=''></p>  
-        </div>
-        
-        <div id="pokemon3" className='pokemonCard flex flex-col items-center bg-white rounded-2xl drop-shadow-md hoverBiggen'>
-          <div className='bg-red-500 w-full flex text-center justify-center text-white rounded-t-2xl'>
-            <h2 id="pokemon3Name" className='px-2'>Who's That Pokemon?</h2>
-          </div>
-          <img id="pokemon3Url" className ='p-2 drop-shadow-xl' src={question} alt='pokemon'></img>
-          <p id="pokemon3Desc" className=''></p>  
-        </div>
-        
-        <div id="pokemon4" className='pokemonCard flex flex-col items-center bg-white rounded-2xl drop-shadow-md hoverBiggen'>
-          <div className='bg-red-500 w-full flex text-center justify-center text-white rounded-t-2xl'>
-            <h2 id="pokemon4Name" className='px-2'>Who's That Pokemon?</h2>
-          </div>
-          <img id="pokemon4Url" className ='p-2 drop-shadow-xl' src={question} alt='pokemon'></img>
-          <p id="pokemon4Desc" className=''></p>  
-        </div>
-        
-        <div id="pokemon5" className='pokemonCard flex flex-col items-center bg-white rounded-2xl drop-shadow-md hoverBiggen'>
-          <div className='bg-red-500 w-full flex text-center justify-center text-white rounded-t-2xl'>
-            <h2 id="pokemon5Name" className='px-2'>Who's That Pokemon?</h2>
-          </div>
-          <img id="pokemon5Url" className ='p-2 drop-shadow-xl' src={question} alt='pokemon'></img>
-          <p id="pokemon5Desc" className=''></p>  
-        </div>
-        
-        <div id="pokemon6" className='pokemonCard flex flex-col items-center bg-white rounded-2xl drop-shadow-md hoverBiggen'>
-          <div className='bg-red-500 w-full flex text-center justify-center text-white rounded-t-2xl'>
-            <h2 id="pokemon6Name" className='px-2'>Who's That Pokemon?</h2>
-          </div>
-            <img id="pokemon6Url" className ='p-2 drop-shadow-xl' src={question} alt='pokemon'></img>
-            <p id="pokemon6Desc" className=''></p>        
-          </div>
-        </div>
-
+        <img className='p-2 drop-shadow-xl' src={imageUrl} alt='pokemon' />
+        <p className=''></p>
     </div>
-  );
-}
+);
 
-function makeImages(){
-  getImage1()
-  getImage2()
-  getImage3()
-  getImage4()
-  getImage5()
-  getImage6()
-}
+const App = () => {
+    // State to store all Pokémon names, the user's Pokémon team, the input, and the team images
+    const allPokemon = useFetchAllPokemon();
+    const [pokemonTeam, setPokemonTeam] = useState([]);
+    const [input, setInput] = useState('');
+    const [teamImages, setTeamImages] = useState(Array(6).fill(question));
 
-function getImage1(){
-  fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonTeam[0].toLowerCase()}`)
-  .then(res => res.json())
-  .then(result => {
-    document.querySelector('#pokemon1Url').src = result.sprites.front_default
-  })
-}
+    // Handler for input change event
+    const handleInputChange = useCallback((e) => setInput(e.target.value), []);
 
-function getImage2(){
-  fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonTeam[1].toLowerCase()}`)
-  .then(res => res.json())
-  .then(result => {
-    document.querySelector('#pokemon2Url').src = result.sprites.front_default
-  })
-}
+    // Function to validate the input
+    const validateInput = useCallback(() => {
+        if (input === "") {
+            alert("Enter a name");
+            return false;
+        }
+        if (!/^[a-zA-Z\s]*$/g.test(input)) {
+            alert("Invalid characters. Your name input should only have spaces and letters.");
+            return false;
+        }
+        if (input.length < 6) {
+            alert("Name is too short. Need a minimum of six letters");
+            return false;
+        }
+        return true;
+    }, [input]);
 
-function getImage3(){
-  fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonTeam[2].toLowerCase()}`)
-  .then(res => res.json())
-  .then(result => {
-    document.querySelector('#pokemon3Url').src = result.sprites.front_default
-  })
-}
+    // Function to convert user input into an array of letters
+    const convertUserInput = useCallback((input) => {
+        return input.split(' ').join('').toLowerCase().slice(0, 6).split('');
+    }, []);
 
-function getImage4(){
-  fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonTeam[3].toLowerCase()}`)
-  .then(res => res.json())
-  .then(result => {
-    document.querySelector('#pokemon4Url').src = result.sprites.front_default
-  })
-}
+    // Function to capitalize the first letter of a string
+    const capitalizeFirstLetter = useCallback((string) => {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }, []);
 
-function getImage5(){
-  fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonTeam[4].toLowerCase()}`)
-  .then(res => res.json())
-  .then(result => {
-    document.querySelector('#pokemon5Url').src = result.sprites.front_default
-  })
-}
+    // Function to fetch images for the Pokémon team
+    const fetchPokemonImages = useCallback(async (team) => {
+        const imageUrls = await Promise.all(team.map(async pokemon => {
+            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.toLowerCase()}`);
+            const result = await response.json();
+            return result.sprites.front_default;
+        }));
+        setTeamImages(imageUrls);
+    }, []);
 
-function getImage6(){
-  fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonTeam[5].toLowerCase()}`)
-  .then(res => res.json())
-  .then(result => {
-    document.querySelector('#pokemon6Url').src = result.sprites.front_default
-  })
-}
+    // Function to create a Pokémon team from the user's input
+    const makeTeamFromName = useCallback(() => {
+        const convertedInput = convertUserInput(input);
+        const team = convertedInput.map(letter => {
+            const filteredPokemon = allPokemon.filter(p => p[0] === letter);
+            const randomPokemon = filteredPokemon[Math.floor(Math.random() * filteredPokemon.length)];
+            return capitalizeFirstLetter(randomPokemon);
+        });
+        setPokemonTeam(team);
+        fetchPokemonImages(team);
+    }, [allPokemon, input, convertUserInput, capitalizeFirstLetter, fetchPokemonImages]);
+
+    // Handler for the button click event
+    const handleClick = useCallback(() => {
+        if (validateInput()) makeTeamFromName();
+    }, [validateInput, makeTeamFromName]);
+
+    return (
+        <div id='pageContainer' className="flex flex-col items-center mt-6">
+            {/* Title image */}
+            <div>
+                <img src={title} alt="title" />
+            </div>
+
+            {/* Input name */}
+            <div className='flex flex-col justify-center align-center p-4 bg-red-500 mt-12 rounded-xl'>
+                <div id='nameForm' className='flex flex-col justify-center align-center bg-red-500' onSubmit={(e) => e.preventDefault()}>
+                    <label className='bg-red-500 text-white'>Enter your name:</label>
+                    <input
+                        id='nameInput'
+                        type='text'
+                        value={input}
+                        onChange={handleInputChange}
+                        className='bg-white input[type=text] rounded-md border-gray-300 shadow-sm pl-3 py-2 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
+                    />
+                </div>
+            </div>
+
+            {/* Button to create Pokémon team */}
+            <button className='makeTeam bg-red-500 drop-shadow-xl hoverBiggen' onClick={handleClick}>
+                Make Team
+            </button>
+
+            {/* Display Pokémon cards */}
+            <div id='pokemonWrapper' className='grid grid-cols-3 m-6 gap-6'>
+                {pokemonTeam.map((pokemon, index) => (
+                    <PokemonCard key={index} pokemon={pokemon} imageUrl={teamImages[index]} index={index} />
+                ))}
+            </div>
+        </div>
+    );
+};
 
 export default App;
